@@ -1,0 +1,207 @@
+Package minijava;
+
+Helpers
+    digit = ['0'..'9'];
+    alpha = ['a'..'z'] | ['A'..'Z'];
+    tab = 9;
+    cr = 10;
+    lf = 13;
+    allchar = [' '..'~'];       // All digits, letters, punctuation
+    eol = cr | lf;
+    white = ' ' | tab | eol;
+    not_star = [allchar - '*'] | white;
+    not_slash = [allchar - '/'] | white;
+    not_star_or_slash = [allchar - ['*' + '/']] | eol;
+    
+Tokens
+    plus = '+';
+    minus = '-';
+    star = '*';
+    not = '!';
+    and = '&&';
+    lt = '<';
+    asmt = '=';
+    equals = '==';
+    comma = ',';
+    semi = ';';
+    dot = '.';
+    lparen = '(';
+    rparen = ')';
+    lbracket = '[';
+    rbracket = ']';
+    lbrace = '{';
+    rbrace = '}';
+    boolean = 'boolean';
+    clas = 'class';
+    else = 'else';
+    extends = 'extends';
+    false = 'false';
+    if = 'if';
+    int = 'int';
+    length = 'length';
+    main = 'main';
+    new = 'new';
+    public = 'public';
+    return = 'return';
+    static = 'static';
+    string = 'String';
+    print = 'System.out.println';
+    this = 'this';
+    true = 'true';
+    void = 'void';
+    while = 'while';
+    for = 'for';
+    id = (alpha) ((alpha) | (digit) | '_')*;
+    num = (['1'..'9']digit*) | '0';
+    whitespace = white+;
+    block_comment = '/*' not_star+ '*'+ (not_star_or_slash not_star* '*'+)* '/';
+    eol_comment = '//' (allchar | tab)* eol;
+Ignored Tokens
+    whitespace,
+    block_comment,
+    eol_comment;
+    
+Productions
+
+    program {-> program} = {program} [classes]:class_decl* {-> New program([classes.class_decl])};
+
+     /*   {main}    id stmt */
+     /*   | {base}    id var_decl* method* */
+     /*   | {sub}     id [extends]:id var_decl* method*; */
+
+    class_decl {-> class_decl} = {classd} clas [classid]:id lbrace [fields]:var_decl* [methods]:method_decl* rbrace {-> New class_decl.base(classid,[fields.var_decl],[methods.method])}
+        |{main} clas [classid]:id [mclassopen]:lbrace public static void main lparen string lbracket rbracket [argsid]:id rparen [mainopen]:lbrace [mainstmt]:stmt rbrace [mainclose]:rbrace {-> New class_decl.main(classid, mainstmt.stmt)}
+        |{sub} clas [classid]:id [helper]:extends [sid]:id lbrace [fields]:var_decl* [methods]:method_decl* rbrace {-> New class_decl.sub(classid, sid, [fields.var_decl],[methods.method])};
+
+    var_decl {-> var_decl*} = {varidec} type id semi {-> [New var_decl(type.type, id)]};
+
+    method_decl {-> method} = {methdec} public [rtype]:type [sig]:id lparen [form]:formal* rparen lbrace [vars]:var_decl* [stms]:stmt* returnstmt rbrace {-> New method(rtype.type, sig, [form.formal], [vars.var_decl], [stms.stmt, returnstmt.stmt])};
+
+    formal {-> formal*} = type [argid]:id comma? {-> [New formal(type.type,argid)]}; /* should pass to more where more will build the actual list */
+
+    /* Types */
+
+    type {-> type} = {array} int lbracket rbracket {-> New type.int_array()}
+        | {boolean} boolean {-> New type.bool()}
+        | {int} int {-> New type.int()}
+        | {identifier} id {-> New type.user(id)};
+
+    /* Statements */
+
+    stmt {-> stmt} = {block} lbrace [stms]:stmt* rbrace {-> New stmt.block([stms.stmt])}
+        | {ifstm} if lparen exp rparen [ifstm]:stmt else [elsestm]:stmt {-> New stmt.if(exp.exp, ifstm.stmt, elsestm.stmt)}
+        | {whilestm} while lparen exp rparen stmt {-> New stmt.while(exp.exp, stmt.stmt)}
+        | {forstm} for lparen [inst]:stmt expone semi [incr]:stmt rparen [bod]:stmt {-> New stmt.for(inst.stmt, expone.exp, incr.stmt, bod.stmt)}
+        | {printstm} print lparen exp rparen semi {-> New stmt.print(exp.exp)}
+        | {assgnstm} id asmt exp semi {-> New stmt.asmt(id, exp.exp)}
+        | {fassignstm} id asmt exp {-> New stmt.asmt(id, exp.exp)}
+        | {arraystm} id lbracket [arr_sub]:exp rbracket asmt [n_val]:exp semi {-> New stmt.array_asmt(id, arr_sub.exp, n_val.exp)};
+
+    returnstmt {-> stmt} = {returnstm} return exp semi {-> New stmt.return(exp.exp)};
+
+    /* Expressions */
+
+    /* Level One Precedence(Lowest) */
+
+    exp {-> exp} = {expadd} [left]:exp plus [right]:expone {-> New exp.plus(left.exp,right.exp)}
+       |{expsub} [left]:exp minus [right]:expone {-> New exp.minus(left.exp,right.exp)}
+       |{expand} [left]:exp and [right]:expone {-> New exp.and(left.exp,right.exp)}
+       |{expone} expone {-> expone.exp};
+
+    /* Level Two Precedence */
+
+    expone {-> exp} = {mult} [left]:expone star [right]:exptwo {-> New exp.times(left.exp,right.exp)}
+        |{expnot} not [left]:exptwo {-> New exp.not(left.exp)}
+        |{explt} [left]:expone lt [right]:exptwo {-> New exp.lt(left.exp,right.exp)}
+        |{exptwo} exptwo {-> exptwo.exp};
+
+    /* Level Three Precedence */
+    /* Changed memaccess from expthree to exptwo */
+
+    exptwo {-> exp} = {methodcall} [obj]:exptwo dot id lparen [args]:arguments* rparen {-> New exp.method(obj.exp, id, [args.exp])}
+        |{explen} exptwo dot length {-> New exp.length(exptwo.exp)}
+        |{expnarr} new int lbracket expone rbracket {-> New exp.alloc(expone.exp)}
+        |{expnobj} new id lparen rparen {-> New exp.new(id)}
+        |{memaccess} [name]:exptwo lbracket [idx]:exp rbracket {-> New exp.ref(name.exp,idx.exp)} /* we changed index to expthree, might mess up precedence */
+        |{expthree} expthree {-> expthree.exp};
+
+    /* Level Four Precedence */    
+
+    arguments {-> exp*} = {args} [argone]:exp [arguments]:moreargs* {-> [argone.exp,arguments.exp]};
+    moreargs {-> exp*} = {moreargs} comma [otherargs]:exp {-> [otherargs.exp]};
+
+
+    /* Level Five Precedence */
+
+    expthree {-> exp} = {num} num {-> New exp.num(num)}
+        |{expthis} this {-> New exp.this()}
+        |{true} true {-> New exp.true()}
+        |{false} false {-> New exp.false()}
+        |{id} id {-> New exp.id(id)}
+        |{paren} lparen expfour rparen {-> expfour.exp}; 
+
+    /* Level Six Precedence (Highest) */
+
+    expfour {-> exp} = {parenthetical} exp {-> exp.exp}; /* possibly unclean, maybe node? */
+
+Abstract Syntax Tree
+
+    program = class_decl*;
+    
+    // Three flavors of class declarations.  All we need to know about
+    // the main class is its name and the stmt in main's body.  For the
+    // others, we need their name, a list of their var_decls, and a list
+    // of method declarations.  (For a subclass we need to know who it
+    // extends as well.)
+    
+    class_decl = 
+          {main}    id stmt
+        | {base}    id var_decl* method*
+        | {sub}     id [extends]:id var_decl* method*;
+        
+    // For var_decls we need to know the var's type and name
+    var_decl = type id;
+    
+    // Need to know a method's return type, its name, a list of
+    // arguments, and the list of stmts in its body.
+    
+    method = type id formal* var_decl* stmt*;
+    
+    formal = type id;
+
+    /* Defn */
+    type = {int} | {bool} | {int_array} | {user} id;
+    
+    // Most of these are pretty self explanatory.  Ids are variable or
+    // array names, stmts are the bodies of ifs and whiles, and exps
+    // are return values, tests, printed values, etc.
+        
+    stmt = 
+          {return}  exp
+        | {block}   stmt*
+        | {if}      exp [yes]:stmt [no]:stmt
+        | {while}   exp stmt
+        | {for}     [inst]:stmt exp [incr]:stmt [bod]:stmt
+        | {print}   exp
+        | {asmt}    id exp
+        | {array_asmt} id [idx]:exp [val]:exp;
+
+    // New stmt.for(inst.stmt, exp.exp, incr.stmt, bod.stmt)
+
+    exp =
+          {and}     [left]:exp [right]:exp
+        | {lt}      [left]:exp [right]:exp
+        | {plus}    [left]:exp [right]:exp
+        | {minus}   [left]:exp [right]:exp
+        | {times}   [left]:exp [right]:exp
+        | {not}     exp
+        | {ref}     [name]:exp [idx]:exp        // name[idx]
+        | {length}  exp                         // exp.length()
+        | {method}  [obj]:exp id [args]:exp*    // obj.id(args)
+        | {num}     num
+        | {id}      id
+        | {true}    
+        | {false}   
+        | {this}    
+        | {alloc}   exp                         // new int[exp]
+        | {new}     id;

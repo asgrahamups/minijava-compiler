@@ -1,0 +1,86 @@
+//Non-Expression Grammar Stuff  
+    program {-> program} = {program} [classes]:class_decl*{[classes.program]};
+
+    class_decl = {classd} clas [classid]:id classhelper? lbrace var_decl* method_decl* rbrace
+        |{main} clas [classid]:id [mclassopen]:lbrace public static void main lparen string lbracket rbracket [argsid]:identifier rparen [mainopen]:lbrace stmt rbrace [mainclose]:rbrace;
+
+    classhelper = extends [sclassid]:identifier;
+    var_decl = {varidec} type identifier semi;
+    method_decl = {methdec} public [returntype]:type [methsig]:identifier lparen methhelper? rparen lbrace var_decl* stmt* return exp semi rbrace;
+    methhelper = type [argid]:identifier explisthelper*;
+    explisthelper = comma [otherargtype]:type [otherargid]:identifier*;
+    stmt = {block} lbrace stmt* rbrace
+        | {ifstm} if lparen exp rparen [ifstm]:stmt else [elsestm]:stmt
+        | {whilestm} while lparen exp rparen stmt
+        | {printstm} print lparen exp rparen semi
+        | {assgnstm} identifier asmt exp semi
+        | {arraystm} identifier lbracket [arr_sub]:exp rbracket asmt [n_val]:exp semi;
+    type = {array} int lbracket rbracket
+        | {boolean} boolean
+        | {int} int
+        | {identifier} id;
+
+Abstract Syntax Tree
+
+
+// A program is a list of class declarations
+
+    program = class_decl*;
+    
+    // Three flavors of class declarations.  All we need to know about
+    // the main class is its name and the stmt in main's body.  For the
+    // others, we need their name, a list of their var_decls, and a list
+    // of method declarations.  (For a subclass we need to know who it
+    // extends as well.)
+    
+    class_decl = 
+          {main}    id stmt
+        | {base}    id var_decl* method*
+        | {sub}     id [extends]:id var_decl* method*;
+
+    // A program is a list of class declarations
+
+    program = class_decl*;
+    
+    // Three flavors of class declarations.  All we need to know about
+    // the main class is its name and the stmt in main's body.  For the
+    // others, we need their name, a list of their var_decls, and a list
+    // of method declarations.  (For a subclass we need to know who it
+    // extends as well.)
+    
+    class_decl = 
+          {main}    id stmt
+        | {base}    id var_decl* method*
+        | {sub}     id [extends]:id var_decl* method*;
+        
+    // For var_decls we need to know the var's type and name
+    
+    var_decl = type id;
+    
+    // Need to know a method's return type, its name, a list of
+    // arguments, and the list of stmts in its body.
+    
+    method = type id formal* var_decl* stmt*;
+    
+    formal = type id;
+    
+    // Most of the types are literals.  We only need extra info for
+    // the user-defined types -- the class name.
+    
+    type = {int} | {bool} | {int_array} | {user} id;
+    
+    // Most of these are pretty self explanatory.  Ids are variable or
+    // array names, stmts are the bodies of ifs and whiles, and exps
+    // are return values, tests, printed values, etc.
+        
+    stmt = 
+          {return}  exp
+        | {block}   stmt*
+        | {if}      exp [yes]:stmt [no]:stmt
+        | {while}   exp stmt
+        | {print}   exp
+        | {asmt}    id exp
+        | {array_asmt} id [idx]:exp [val]:exp;
+         
+    // Lots and lots of expressions.
+         

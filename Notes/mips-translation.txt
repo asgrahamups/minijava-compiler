@@ -1,0 +1,68 @@
+Mips notes from class
+
+Difficult:
+
+Call
+Return
+Labels(that define methods)
+
+Statements
+
+SEQ - Nothing
+
+Label
+- print "labelName:"
+
+Comments 
+- # "here be comment" 
+
+Jump 
+- j "label"
+
+Expr 
+-process exp (spit out the exp which will leave a value in a reg)
+
+CJump 
+-process Exp trees (spit out mips code for left and right [this will leave values in regs] then compare to the operator in the CJUMP)
+-Branch to label
+
+Move
+-Reg <- Reg : a simple move instruction
+-Reg <- exp : for exp use lw and preceeding lines should calculate the offset for the load word
+-Mem <- exp : sw to store to memory, then use lw to load from memory
+
+Expressions
+
+Every expression leaves a result in a reg
+
+MEM 
+- Recall MOVEs (Reg <- Exp)
+- Always the right hand side of a move
+- lw $reg 0(exp-result)
+
+Reg
+-addi $out, $base, CONST
+
+or
+
+-li $foo, 8
+-add $out, $base, $foo
+
+-Reg expressions simply look inside a reg...so just build a reg name into "consumer"
+-But how did we know it was $base?
+
+ESEQ
+-generate mips for STM
+-use result register
+
+Name
+-uhhh
+
+CONST
+-li $someReg value
+
+Binop
+-visit children, note reg's used for results, combine with operator
+
+
+

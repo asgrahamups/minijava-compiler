@@ -1,0 +1,121 @@
+Package MiniJava;
+
+Helpers
+    digit = ['0'..'9'];
+    alpha = ['a'..'z'] | ['A'..'Z'];
+    tab = 9;
+    cr = 10;
+    lf = 13;
+    allchar = [' '..'~'];       // All digits, letters, punctuation
+    eol = cr | lf;
+    white = ' ' | tab | eol;
+    not_star = [allchar - '*'] | white;
+    not_slash = [allchar - '/'] | white;
+    not_star_or_slash = [allchar - ['*' + '/']] | eol;
+    
+Tokens
+    plus = '+';
+    minus = '-';
+    star = '*';
+    not = '!';
+    and = '&&';
+    lt = '<';
+    asmt = '=';
+    equals = '==';
+    comma = ',';
+    semi = ';';
+    dot = '.';
+    lparen = '(';
+    rparen = ')';
+    lbracket = '[';
+    rbracket = ']';
+    lbrace = '{';
+    rbrace = '}';
+    boolean = 'boolean';
+    clas = 'class';
+    else = 'else';
+    extends = 'extends';
+    false = 'false';
+    if = 'if';
+    int = 'int';
+    length = 'length';
+    main = 'main';
+    new = 'new';
+    public = 'public';
+    return = 'return';
+    static = 'static';
+    string = 'String';
+    print = 'System.out.println';
+    this = 'this';
+    true = 'true';
+    void = 'void';
+    while = 'while';
+    id = (alpha) ((alpha) | (digit) | '_')*;
+    num = (['1'..'9']digit*) | '0';
+    whitespace = white+;
+    block_comment = '/*' not_star+ '*'+ (not_star_or_slash not_star* '*'+)* '/';
+    eol_comment = '//' (allchar | tab)* eol;
+Ignored Tokens
+    whitespace,
+    block_comment,
+    eol_comment;
+    
+Productions
+    program = {program} mainclass classdec*;
+    mainclass = {mclass} clas [classid]:id [mclassopen]:lbrace public static void main lparen string lbracket rbracket [argsid]:identifier rparen [mainopen]:lbrace statement rbrace [mainclose]:rbrace;
+
+    classdec = {classd} clas [classid]:id classhelper? lbrace vardec* methodec* rbrace;
+    classhelper = extends [sclassid]:identifier;
+    vardec = {varidec} type identifier semi;
+    methodec = {methdec} public [returntype]:type [methsig]:identifier lparen methhelper? rparen lbrace vardec* statement* return expression semi rbrace;
+    methhelper = type [argid]:identifier explisthelper?;
+    explisthelper = comma [otherargtype]:type [otherargid]:identifier*;
+    statement = {block} lbrace statement* rbrace
+        | {ifstm} if lparen expression rparen [ifstm]:statement else [elsestm]:statement
+        | {whilestm} while lparen expression rparen statement
+        | {printstm} print lparen expression rparen semi
+        | {assgnstm} identifier asmt expression semi
+        | {arraystm} identifier lbracket [arr_sub]:expression rbracket asmt [n_val]:expression semi;
+    type = {array} int lbracket rbracket
+        | {boolean} boolean
+        | {int} int
+        | {identifier} id;
+
+    /*Expression Precedence*/
+
+    /* Level One Precedence(Lowest) */
+
+    expression = {expadd} expression plus expone
+       |{expsub} expression minus expone
+       |{expand} expression and expone
+       |{expone} expone;
+
+    expone = {mult} expone star exptwo
+        |{explt} expone lt exptwo
+        |{exptwo} exptwo;
+
+    exptwo = {methodcall} exptwo dot identifier lparen arguments* rparen
+        |{explen}exptwo dot length
+        |{expnarr} new int lbracket exptwo rbracket
+        |{expnobj} new identifier lparen rparen
+        |{memaccess} exptwo lbracket index rbracket
+        |{expthis} this
+        |{expnot} not+ expthree
+        |{expthree} expthree;
+
+    index = {arrnum} expfour;
+
+    arguments = {args} expression moreargs?;
+    moreargs = {moreargs} comma expression;  
+
+    expthree = {num} num
+        |{true} true
+        |{false} false
+        |{id} identifier
+        |{paren} lparen expfour rparen;
+
+    expfour = {parenthetical} expression;
+
+    /* Identifiers */
+
+    identifier = id;

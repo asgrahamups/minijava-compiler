@@ -1,0 +1,120 @@
+
+graph IRTGraph {
+0 [ label="SEQ" ];
+1 [ label="SEQ" ];
+0 -- 1
+2 [ label="LABEL\nFoo.run" ];
+1 -- 2
+3 [ label="SEQ" ];
+1 -- 3
+4 [ label="SEQ" ];
+3 -- 4
+5 [ label="CMT: " ];
+4 -- 5
+6 [ label="SEQ" ];
+4 -- 6
+7 [ label="CMT: dummy=[line 21]" ];
+6 -- 7
+8 [ label="MOVE" ];
+6 -- 8
+9 [ label="MEM" ];
+8 -- 9
+10 [ label="BINOP\n+" ];
+9 -- 10
+11 [ label="REG\n$sp" ];
+10 -- 11
+12 [ label="CONST\n8" ];
+10 -- 12
+13 [ label="CALL" ];
+8 -- 13
+14 [ label="NAME\nFoo.print" ];
+13 -- 14
+15 [ label="ESEQ" ];
+13 -- 15
+16 [ label="CMT: Extracting this from stack" ];
+15 -- 16
+17 [ label="MEM" ];
+15 -- 17
+18 [ label="BINOP\n+" ];
+17 -- 18
+19 [ label="REG\n$sp" ];
+18 -- 19
+20 [ label="CONST\n4" ];
+18 -- 20
+21 [ label="CONST\n50" ];
+13 -- 21
+22 [ label="RETURN" ];
+3 -- 22
+23 [ label="CALL" ];
+22 -- 23
+24 [ label="NAME\nFoo.print" ];
+23 -- 24
+25 [ label="ESEQ" ];
+23 -- 25
+26 [ label="CMT: Extracting this from stack" ];
+25 -- 26
+27 [ label="MEM" ];
+25 -- 27
+28 [ label="BINOP\n+" ];
+27 -- 28
+29 [ label="REG\n$sp" ];
+28 -- 29
+30 [ label="CONST\n4" ];
+28 -- 30
+31 [ label="CONST\n100" ];
+23 -- 31
+32 [ label="SEQ" ];
+0 -- 32
+33 [ label="SEQ" ];
+32 -- 33
+34 [ label="LABEL\nFoo.print" ];
+33 -- 34
+35 [ label="SEQ" ];
+33 -- 35
+36 [ label="SEQ" ];
+35 -- 36
+37 [ label="CMT: " ];
+36 -- 37
+38 [ label="EXPR" ];
+36 -- 38
+39 [ label="CALL" ];
+38 -- 39
+40 [ label="NAME\nprint" ];
+39 -- 40
+41 [ label="MEM" ];
+39 -- 41
+42 [ label="BINOP\n+" ];
+41 -- 42
+43 [ label="REG\n$sp" ];
+42 -- 43
+44 [ label="CONST\n8" ];
+42 -- 44
+45 [ label="RETURN" ];
+35 -- 45
+46 [ label="CONST\n0" ];
+45 -- 46
+47 [ label="SEQ" ];
+32 -- 47
+48 [ label="LABEL\nmain" ];
+47 -- 48
+49 [ label="EXPR" ];
+47 -- 49
+50 [ label="CALL" ];
+49 -- 50
+51 [ label="NAME\nprint" ];
+50 -- 51
+52 [ label="CALL" ];
+50 -- 52
+53 [ label="NAME\nFoo.run" ];
+52 -- 53
+54 [ label="ESEQ" ];
+52 -- 54
+55 [ label="MOVE" ];
+54 -- 55
+56 [ label="REG\n$gp" ];
+55 -- 56
+57 [ label="CONST\n0" ];
+55 -- 57
+58 [ label="REG\n$gp" ];
+54 -- 58
+}

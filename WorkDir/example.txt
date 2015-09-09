@@ -1,0 +1,2 @@
+Usage: java compiler.RunCompiler [option] < [infile]
+Options: mips, runsim

@@ -1,0 +1,226 @@
+
+
+/*
+
+    methodexpone = {methodcallnum} num
+        |{methodcallid} identifier
+        |{methodcalltrue} true
+        |{methodcallfalse} false;
+
+    methodexptwo = {methodcallnum} num
+        |{methodcallid} identifier
+        |{methodcalltrue} true
+        |{methodcallfalse} false;
+
+    addmin_pr = addmin_helper num_expression;
+    mult_pr = mult_helper num_expression;
+    bool_pr = bool_helper bool_expression;  
+    
+    ophelper = {bh} bool_helper | {nh} num_helper;
+    bool_helper = {opand} and | {oplt} lt;    
+    num_helper = {admh} maybe_addmin | {multh} maybe_mult;
+    maybe_addmin = {admingo} addmin_helper maybe_addmin
+        | {nope};
+    addmin_helper = {oplus} plus | {ominus} minus;
+    maybe_mult = {multgo} mult_helper maybe_mult
+        | {nope};
+    mult_helper = {ostar} star;    
+    invokehelper = [argone]:expression exphelper?;
+    exphelper = comma [other]:expression*;
+
+    /* multi-right productions */
+    compound_expression = lparen expression rparen;
+    bool_expression = {true} true
+        | {false} false
+        | {nt} not* expression;
+    num_expression = {intliteral} num;
+    array_expression = {length} expression dot length 
+        | {narrexpr} new int lbracket expression rbracket
+        | {tarray} [idname]:expression lbracket [subscript]:expression rbracket;
+    oper_expression = {bool_op} bool_expression
+        | {num_op} num_expression;
+    method_expression = {methodinvoke} expression dot id rparen invokehelper lparen;
+    term_numexpression = {tnumid} identifier
+        | {tnum} num
+        | {texpr} expression;
+    term_boolexpression = {tboolid} identifier 
+        | {tbool} bool_expression;
+    expression = {bexpr} bool_expression
+        | {nexpr} num_expression
+        | {operation} [leftside]:expression ophelper [rightside]:expression
+        | {prenexpr} compound_expression
+        | {mexpr} method_expression
+        | {idenexpr} identifier
+        | {thisexpr} this
+        | {nobjexpr} new identifier lparen rparen; */Package MiniJava;
+
+Helpers
+    digit = ['0'..'9'];
+    alpha = ['a'..'z'] | ['A'..'Z'];
+    tab = 9;
+    cr = 10;
+    lf = 13;
+    allchar = [' '..'~'];       // All digits, letters, punctuation
+    eol = cr | lf;
+    white = ' ' | tab | eol;
+    not_star = [allchar - '*'] | white;
+    not_slash = [allchar - '/'] | white;
+    not_star_or_slash = [allchar - ['*' + '/']] | eol;
+    
+Tokens
+    plus = '+';
+    minus = '-';
+    star = '*';
+    not = '!';
+    and = '&&';
+    lt = '<';
+    asmt = '=';
+    equals = '==';
+    comma = ',';
+    semi = ';';
+    dot = '.';
+    lparen = '(';
+    rparen = ')';
+    lbracket = '[';
+    rbracket = ']';
+    lbrace = '{';
+    rbrace = '}';
+    boolean = 'boolean';
+    clas = 'class';
+    else = 'else';
+    extends = 'extends';
+    false = 'false';
+    if = 'if';
+    int = 'int';
+    length = 'length';
+    main = 'main';
+    new = 'new';
+    public = 'public';
+    return = 'return';
+    static = 'static';
+    string = 'String';
+    print = 'System.out.println';
+    this = 'this';
+    true = 'true';
+    void = 'void';
+    while = 'while';
+    id = (alpha) ((alpha) | (digit) | '_')*;
+    num = (['1'..'9']digit*) | '0';
+    whitespace = white+;
+    block_comment = '/*' not_star+ '*'+ (not_star_or_slash not_star* '*'+)* '/';
+    eol_comment = '//' (allchar | tab)* eol;
+Ignored Tokens
+    whitespace,
+    block_comment,
+    eol_comment;
+    
+Productions
+    program = {program} mainclass classdec*;
+    mainclass = {mclass} clas [classid]:id [mclassopen]:lbrace public static void main lparen string lbracket rbracket [argsid]:identifier rparen [mainopen]:lbrace statement rbrace [mainclose]:rbrace;
+
+    classdec = {classd} clas [classid]:id classhelper? lbrace vardec* methodec* rbrace;
+    classhelper = extends [sclassid]:identifier;
+    vardec = {varidec} type identifier semi;
+    methodec = {methdec} public [returntype]:type [methsig]:identifier lparen methhelper? rparen lbrace vardec* statement* return expression semi rbrace;
+    methhelper = type [argid]:identifier explisthelper?;
+    explisthelper = comma [otherargtype]:type [otherargid]:identifier*;
+    statement = {block} lbrace statement* rbrace
+        | {ifstm} if lparen expression rparen [ifstm]:statement else [elsestm]:statement
+        | {whilestm} while lparen expression rparen statement
+        | {printstm} print lparen expression rparen semi
+        | {assgnstm} identifier asmt expression semi
+        | {arraystm} identifier lbracket [arr_sub]:expression rbracket asmt [n_val]:expression semi;
+    type = {array} int lbracket rbracket
+        | {boolean} boolean
+        | {int} int
+        | {identifier} id;
+
+    /*Expression Precedence*/
+
+    /* Level One Precedence(Lowest) */
+
+    expression = {notexp} not expone
+       |{exp} expone;  
+
+    /*Level Two Precedence */
+
+    expone = {expadd} expone plus exptwo
+        |{expsub} expone minus exptwo
+        |{expand} expone and exptwo
+        |{expone} exptwo;
+
+    /*Level Three Precedence*/   
+
+    exptwo = {expmult} exptwo star expthree
+        |{explt} exptwo lt expthree
+        |{exptwo} expthree;
+
+    /* Level Four Precedence */
+
+    expthree = {explen} expthree dot length
+        |{expnobj} new identifier lparen rparen
+        |{expnarr} new int lbracket expthree rbracket
+        |{methodcall} expthree dot identifier lparen arguments* rparen
+        |{oparrayderef} arrayderef
+        |{expfour} expfour;
+
+    arguments = {args} expression moreargs?;
+    moreargs = {moreargs} comma expression;  
+
+    arrayderef =  expression lbracket arrexpone rbracket;
+    arrexpone = {arrnum} expression;
+
+    /*Level Five Precedence */
+
+    expfour = {id} identifier
+        |{numexp} num
+        |{true} true
+        |{false} false
+        |{paren} lparen expfive rparen; 
+
+   /*Level Six Precedence(Highest) */
+
+    expfive = {parenthetical} expression;  
+
+    /* Identifiers */
+
+    identifier = id;Graveyard
+
+       |{exp} exptwo;  
+
+    /*Level Two Precedence */
+
+    expone = {expone} exptwo;
+
+    /*Level Three Precedence*/   
+
+    exptwo = {expmult} exptwo star expthree
+        |{expnobj} new identifier lparen rparen
+        |{expnarr} new int lbracket exptwo rbracket
+        |{explt} exptwo lt expthree
+        |{exptwo} expthree;
+
+    /* Level Four Precedence */
+
+    expthree = {explen} expthree dot length
+        |{methodcall} expthree dot identifier lparen arguments* rparen
+        |{oparrayderef} arrayderef
+        |{expfour} expfour;
+
+    arguments = {args} expression moreargs?;
+    moreargs = {moreargs} comma expression;  
+
+    arrayderef =  expression lbracket arrexpone rbracket;
+    arrexpone = {arrnum} expression;
+
+    /*Level Five Precedence */
+
+    expfour = {id} identifier
+        |{numexp} num
+        |{true} true
+        |{false} false
+        |{paren} lparen expfive rparen; 
+
+   /*Level Six Precedence(Highest) */
+
+    expfive = {parenthetical} expression; 

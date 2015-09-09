@@ -1,0 +1,7 @@
+TODO:
+=====
+
+Instance Variables
+Arrays (might be taken care of already)
+	+ only case we prob. need to look at is MEM->MEM
+Control flow (CJUMP)
