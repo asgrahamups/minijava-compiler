@@ -1,0 +1,42 @@
+# blanket ignores - we can add later exceptions
+*.class
+*.dot
+*.png
+*.svg
+*.pdf
+*.DS_Store
+
+# recognize all PDFs in the Notes dir
+!Notes/*.pdf
+
+# ignore specific temp dot files
+current.dot
+current.pdf
+
+# ignore generated java files
+/WorkDir/minijava
+/WorkDir/.classpath
+/WorkDir/.project
+
+# ignore eclipse files
+.metadata/
+.recommenders/
+
+# ignore packaged files for submission
+Submissions/
+
+# ignore archived files
+*.tar.gz
+*.zip
+*.7z
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
