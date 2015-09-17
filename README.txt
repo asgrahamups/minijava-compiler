@@ -1,6 +1,6 @@
 # quicksilver 
 
-In it's current state Quicksilver is a compiler for mini-java (http://www.cambridge.org/us/features/052182060X/). Instead of outputing bytecode, this compiler decompiles mini-java programs into full MIPS assembly. To use the compiler, simply clone the "WorkDir" folder,
+In it's current state Quicksilver is a compiler for mini-java (http://www.cambridge.org/us/features/052182060X/). Instead of outputing bytecode, this compiler compiles mini-java programs into full MIPS assembly. To use the compiler, simply clone the "WorkDir" folder,
 compile all java programs in all folders, and use the command
 
 java compiler.RunCompiler PROGRAM_FILE_PATH mips -> ASSEMBLY_FILE_NAME.txt
