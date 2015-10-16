@@ -1,2 +1,0 @@
-# Quicksilver
-Mini-Java Compiler
