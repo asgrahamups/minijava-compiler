@@ -1,1 +1,2 @@
-Mini-java compiler
+#Quicksilver
+Mini-Java Compiler
